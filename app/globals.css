@@ -152,12 +152,6 @@ a[href*="clerk.com"] {
   display: none !important;
 }
 
-/* Targeted hide for the "Secured by" / "Development mode" badge */
-/* The badge is typically the last element in the card, after the footer */
-.storyline-card>*:last-child:not(form):not(.cl-footer) {
-  display: none !important;
-}
-
 /* Extra redundancy for common internal badge classes */
 .cl-internal-4x6r2m,
 .cl-internal-1809773,

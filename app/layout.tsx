@@ -40,7 +40,7 @@ export default function RootLayout({
           borderRadius: "0.5rem",
         },
         elements: {
-          card: "storyline-card bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 shadow-2xl",
+          card: "bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 shadow-2xl",
           formButtonPrimary:
             "bg-[#00FFCC] text-black hover:bg-[#00e6b8] shadow-[0_0_15px_rgba(0,255,204,0.3)] transition-all uppercase tracking-widest text-xs font-bold",
           socialButtonsBlockButton:
