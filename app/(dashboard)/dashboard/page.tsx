@@ -93,14 +93,14 @@ export default function DashboardPage() {
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/20 via-secondary/10 to-transparent border border-primary/20 p-8"
+                className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/20 via-secondary/10 to-transparent border border-primary/20 p-6 md:p-8"
             >
                 <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
                 <div className="relative z-10">
-                    <h1 className="text-4xl font-bold mb-2">
+                    <h1 className="text-2xl md:text-4xl font-bold mb-2">
                         Welcome back, {user?.firstName || "Explorer"}! 👋
                     </h1>
-                    <p className="text-muted-foreground text-lg">
+                    <p className="text-muted-foreground text-sm md:text-lg">
                         Track your journey through movies, books, and travel experiences.
                     </p>
                 </div>
@@ -111,7 +111,7 @@ export default function DashboardPage() {
                 variants={container}
                 initial="hidden"
                 animate="show"
-                className="rounded-xl bg-card border border-border p-6 shadow-sm"
+                className="rounded-xl bg-card border border-border p-4 md:p-6 shadow-sm"
             >
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-lg font-bold">Quick Actions</h2>
@@ -158,7 +158,7 @@ export default function DashboardPage() {
                 variants={container}
                 initial="hidden"
                 animate="show"
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+                className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6"
             >
                 {statsCards.map((stat) => {
                     const Icon = stat.icon;
@@ -211,25 +211,26 @@ export default function DashboardPage() {
                         {loading && !highlights ? (
                             <div className="h-48 rounded-xl bg-muted/20 animate-pulse" />
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                                 {/* Recent Movie */}
                                 {highlights?.recent.movie ? (
                                     <div className="flex bg-card border border-border rounded-xl overflow-hidden hover:border-primary/50 transition-colors group">
-                                        <div className="w-24 shrink-0 bg-muted relative">
+                                        <div className="w-1/3 md:w-24 shrink-0 bg-muted relative aspect-[2/3]">
                                             {highlights.recent.movie.poster_url ? (
                                                 <Image
                                                     src={highlights.recent.movie.poster_url}
                                                     alt={highlights.recent.movie.title}
                                                     fill
                                                     className="object-cover"
+                                                    sizes="(max-width: 768px) 33vw, 100px"
                                                 />
                                             ) : (
                                                 <div className="h-full w-full flex items-center justify-center text-muted-foreground"><Film /></div>
                                             )}
                                         </div>
-                                        <div className="p-4 flex flex-col justify-between flex-1">
+                                        <div className="p-3 md:p-4 flex flex-col justify-between flex-1 min-w-0">
                                             <div>
-                                                <h3 className="font-bold line-clamp-1 group-hover:text-primary transition-colors">{highlights.recent.movie.title}</h3>
+                                                <h3 className="font-bold line-clamp-1 group-hover:text-primary transition-colors text-sm md:text-base">{highlights.recent.movie.title}</h3>
                                                 <div className="flex items-center gap-1 text-yellow-500 my-1">
                                                     <Star size={12} fill="currentColor" />
                                                     <span className="text-xs font-medium">{highlights.recent.movie.rating}/10</span>
@@ -250,21 +251,22 @@ export default function DashboardPage() {
                                 {/* Recent Book */}
                                 {highlights?.recent.book ? (
                                     <div className="flex bg-card border border-border rounded-xl overflow-hidden hover:border-secondary/50 transition-colors group">
-                                        <div className="w-24 shrink-0 bg-muted relative">
+                                        <div className="w-1/3 md:w-24 shrink-0 bg-muted relative aspect-[2/3]">
                                             {highlights.recent.book.cover_url ? (
                                                 <Image
                                                     src={highlights.recent.book.cover_url}
                                                     alt={highlights.recent.book.title}
                                                     fill
                                                     className="object-cover"
+                                                    sizes="(max-width: 768px) 33vw, 100px"
                                                 />
                                             ) : (
                                                 <div className="h-full w-full flex items-center justify-center text-muted-foreground"><BookOpen /></div>
                                             )}
                                         </div>
-                                        <div className="p-4 flex flex-col justify-between flex-1">
+                                        <div className="p-3 md:p-4 flex flex-col justify-between flex-1 min-w-0">
                                             <div>
-                                                <h3 className="font-bold line-clamp-1 group-hover:text-secondary transition-colors">{highlights.recent.book.title}</h3>
+                                                <h3 className="font-bold line-clamp-1 group-hover:text-secondary transition-colors text-sm md:text-base">{highlights.recent.book.title}</h3>
                                                 <div className="flex items-center gap-1 text-yellow-500 my-1">
                                                     <Star size={12} fill="currentColor" />
                                                     <span className="text-xs font-medium">{highlights.recent.book.rating}/5</span>

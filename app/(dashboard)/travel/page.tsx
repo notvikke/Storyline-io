@@ -137,7 +137,7 @@ export default function TravelPage() {
             </div>
 
             {/* Floating Panel */}
-            <div className="absolute top-4 left-4 z-[1000] w-80 flex flex-col gap-4">
+            <div className={`absolute top-4 left-4 z-[500] w-[calc(100%-2rem)] md:w-80 flex flex-col gap-4 transition-all duration-300 ${drawerOpen ? 'opacity-0 pointer-events-none translate-y-[-20px]' : 'opacity-100 translate-y-0'}`}>
 
                 {/* Stats Card */}
                 <div className="p-4 bg-background/95 backdrop-blur-md border border-border rounded-xl shadow-lg">
@@ -224,7 +224,7 @@ export default function TravelPage() {
             </div>
 
             {/* Floating Action Button */}
-            <div className="absolute top-4 right-4 z-[1000]">
+            <div className="absolute bottom-24 left-4 md:top-4 md:right-4 md:bottom-auto md:left-auto z-[600]">
                 <button
                     onClick={() => {
                         setEditingLog(null); // Reset for new entry
