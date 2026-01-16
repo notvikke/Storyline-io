@@ -146,8 +146,7 @@ div[data-clerk-theme="dark"]>div:last-child,
   width: 0 !important;
 }
 
-/* Ensure no Clerk branding images are visible */
-img[src*="clerk"],
+/* Ensure no Clerk branding images are visible - targeted */
 a[href*="clerk.com"] {
   display: none !important;
 }
@@ -155,7 +154,6 @@ a[href*="clerk.com"] {
 /* Extra redundancy for common internal badge classes */
 .cl-internal-4x6r2m,
 .cl-internal-1809773,
-[class*="cl-internal"] a[href*="clerk.com"],
-[class*="cl-internal"] img[src*="clerk"] {
+[class*="cl-internal"] a[href*="clerk.com"] {
   display: none !important;
 }

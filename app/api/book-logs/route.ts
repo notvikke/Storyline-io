@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
@@ -31,6 +30,9 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 
+        // Default status to 'completed'
+        bookData.status = bookData.status || "completed";
+
         // Insert into Supabase (bypasses RLS with service role)
         const { data, error } = await supabaseAdmin
             .from("book_logs")
@@ -61,12 +63,65 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        // Get user's books
-        const { data, error } = await supabaseAdmin
+        const { searchParams } = new URL(request.url);
+        const status = searchParams.get("status");
+
+        let query = supabaseAdmin
             .from("book_logs")
             .select("*")
-            .eq("user_id", userId)
-            .order("finished_date", { ascending: false });
+            .eq("user_id", userId);
+
+        // Optional status filter
+        if (status) {
+            query = query.eq("status", status);
+        }
+
+        const { data, error } = await query.order("finished_date", { ascending: false });
+
+        if (error) {
+            return NextResponse.json({ error: error.message }, { status: 500 });
+        }
+
+        return NextResponse.json(data);
+    } catch (error: any) {
+        return NextResponse.json(
+            { error: error?.message || "Internal server error" },
+            { status: 500 }
+        );
+    }
+}
+
+export async function PATCH(request: NextRequest) {
+    try {
+        const { userId } = await auth();
+        if (!userId) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        const updates = await request.json();
+        const { id, ...dataToUpdate } = updates;
+
+        if (!id) {
+            return NextResponse.json({ error: "ID required" }, { status: 400 });
+        }
+
+        // Verify ownership
+        const { data: existing } = await supabaseAdmin
+            .from("book_logs")
+            .select("user_id")
+            .eq("id", id)
+            .single();
+
+        if (existing?.user_id !== userId) {
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
+
+        const { data, error } = await supabaseAdmin
+            .from("book_logs")
+            .update(dataToUpdate)
+            .eq("id", id)
+            .select()
+            .single();
 
         if (error) {
             return NextResponse.json({ error: error.message }, { status: 500 });

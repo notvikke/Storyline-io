@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { ChevronLeft, ChevronRight, Loader2, Film, BookOpen, MapPin, FileText } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2, Film, BookOpen, MapPin, FileText, ChevronDown } from "lucide-react";
 import Link from "next/link";
 
 interface CalendarEvent {
@@ -19,8 +19,18 @@ const MONTHS = ["January", "February", "March", "April", "May", "June", "July", 
 export default function CalendarView() {
     const [events, setEvents] = useState<CalendarEvent[]>([]);
     const [loading, setLoading] = useState(true);
-    const [currentDate, setCurrentDate] = useState(new Date());
+    // Initialize with fixed date for SSR, then update on mount
+    const [currentDate, setCurrentDate] = useState<Date>(new Date());
     const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+        // Ensure client-side date matches current browser time exactly on mount
+        const now = new Date();
+        setCurrentDate(now);
+        setSelectedDate(now);
+    }, []);
 
     useEffect(() => {
         const fetchEvents = async () => {
@@ -75,7 +85,23 @@ export default function CalendarView() {
         ? eventsByDate[formatDateKey(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate())] || []
         : [];
 
-    if (loading) {
+    const [isPickerOpen, setIsPickerOpen] = useState(false);
+    const [pickerYear, setPickerYear] = useState(new Date().getFullYear());
+
+    // Sync picker year when calendar view changes (only if picker is closed)
+    useEffect(() => {
+        if (!isPickerOpen) {
+            setPickerYear(currentDate.getFullYear());
+        }
+    }, [currentDate, isPickerOpen]);
+
+    const handleMonthSelect = (monthIndex: number) => {
+        setCurrentDate(new Date(pickerYear, monthIndex, 1));
+        setIsPickerOpen(false);
+        setSelectedDate(null);
+    };
+
+    if (loading || !mounted) {
         return (
             <div className="flex items-center justify-center h-64">
                 <Loader2 className="animate-spin text-primary" size={32} />
@@ -86,17 +112,97 @@ export default function CalendarView() {
     return (
         <div className="flex flex-col lg:flex-row gap-8">
             {/* Calendar Grid */}
-            <div className="flex-1 bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+            <div className="flex-1 bg-card border border-border rounded-xl overflow-hidden shadow-sm relative">
                 {/* Header */}
-                <div className="p-4 flex items-center justify-between border-b border-border bg-muted/20">
-                    <h2 className="text-xl font-bold">
-                        {MONTHS[currentDate.getMonth()]} {currentDate.getFullYear()}
-                    </h2>
+                <div className="p-4 flex items-center justify-between border-b border-border bg-muted/20 relative z-20">
+                    <div className="relative">
+                        <button
+                            onClick={() => setIsPickerOpen(!isPickerOpen)}
+                            className="text-xl font-bold flex items-center gap-2 hover:text-primary transition-colors px-2 py-1 -ml-2 rounded-lg hover:bg-muted/50"
+                        >
+                            {MONTHS[currentDate.getMonth()]} {currentDate.getFullYear()}
+                            <span className={`text-muted-foreground transition-transform duration-200 ${isPickerOpen ? "rotate-180" : ""}`}>
+                                <ChevronDown size={20} />
+                            </span>
+                        </button>
+
+                        {/* Date Picker Dropdown */}
+                        {isPickerOpen && (
+                            <>
+                                {/* Backdrop to close */}
+                                <div
+                                    className="fixed inset-0 z-40"
+                                    onClick={() => setIsPickerOpen(false)}
+                                />
+                                <div className="absolute top-full left-0 mt-2 w-72 bg-card border border-border rounded-xl shadow-2xl z-50 p-4 animate-in fade-in zoom-in-95 duration-200">
+                                    {/* Year Selector */}
+                                    <div className="flex items-center justify-between mb-4">
+                                        <button
+                                            onClick={() => setPickerYear(y => y - 1)}
+                                            className="p-1 hover:bg-muted rounded-full text-muted-foreground hover:text-foreground"
+                                        >
+                                            <ChevronLeft size={20} />
+                                        </button>
+                                        <span className="font-bold text-lg">{pickerYear}</span>
+                                        <button
+                                            onClick={() => setPickerYear(y => y + 1)}
+                                            className="p-1 hover:bg-muted rounded-full text-muted-foreground hover:text-foreground"
+                                        >
+                                            <ChevronRight size={20} />
+                                        </button>
+                                    </div>
+
+                                    {/* Month Grid */}
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {MONTHS.map((month, index) => {
+                                            const today = new Date();
+                                            const isCurrentMonth = index === today.getMonth() && pickerYear === today.getFullYear();
+                                            const isSelectedMonth = index === currentDate.getMonth() && pickerYear === currentDate.getFullYear();
+
+                                            return (
+                                                <button
+                                                    key={month}
+                                                    onClick={() => handleMonthSelect(index)}
+                                                    className={`
+                                                        py-2 px-1 rounded-md text-sm font-medium transition-all
+                                                        ${isSelectedMonth
+                                                            ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                                                            : "hover:bg-muted text-muted-foreground hover:text-foreground"
+                                                        }
+                                                        ${isCurrentMonth && !isSelectedMonth ? "border border-primary/30 text-primary" : ""}
+                                                    `}
+                                                >
+                                                    {month.substring(0, 3)}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {/* Footer */}
+                                    <div className="mt-4 pt-3 border-t border-border flex justify-between">
+                                        <button
+                                            onClick={() => {
+                                                const now = new Date();
+                                                setCurrentDate(now);
+                                                setPickerYear(now.getFullYear());
+                                                setIsPickerOpen(false);
+                                                setSelectedDate(now);
+                                            }}
+                                            className="text-xs font-semibold text-muted-foreground hover:text-primary transition-colors"
+                                        >
+                                            Jump to Today
+                                        </button>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
+
                     <div className="flex gap-2">
-                        <button onClick={() => changeMonth(-1)} className="p-2 hover:bg-muted rounded-full">
+                        <button onClick={() => changeMonth(-1)} className="p-2 hover:bg-muted rounded-full text-muted-foreground hover:text-foreground transition-colors">
                             <ChevronLeft size={20} />
                         </button>
-                        <button onClick={() => changeMonth(1)} className="p-2 hover:bg-muted rounded-full">
+                        <button onClick={() => changeMonth(1)} className="p-2 hover:bg-muted rounded-full text-muted-foreground hover:text-foreground transition-colors">
                             <ChevronRight size={20} />
                         </button>
                     </div>

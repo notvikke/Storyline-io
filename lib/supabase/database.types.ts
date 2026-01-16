@@ -28,6 +28,7 @@ export interface Database {
                     rating: number | null
                     notes: string | null
                     watched_date: string | null
+                    status: "completed" | "planning"
                     created_at: string
                     updated_at: string
                 }
@@ -44,6 +45,7 @@ export interface Database {
                     rating?: number | null
                     notes?: string | null
                     watched_date?: string | null
+                    status?: "completed" | "planning"
                     created_at?: string
                     updated_at?: string
                 }
@@ -60,6 +62,7 @@ export interface Database {
                     rating?: number | null
                     notes?: string | null
                     watched_date?: string | null
+                    status?: "completed" | "planning"
                     created_at?: string
                     updated_at?: string
                 }
@@ -79,6 +82,7 @@ export interface Database {
                     notes: string | null
                     started_date: string | null
                     finished_date: string | null
+                    status: "completed" | "planning"
                     created_at: string
                     updated_at: string
                 }
@@ -96,6 +100,7 @@ export interface Database {
                     notes?: string | null
                     started_date?: string | null
                     finished_date?: string | null
+                    status?: "completed" | "planning"
                     created_at?: string
                     updated_at?: string
                 }

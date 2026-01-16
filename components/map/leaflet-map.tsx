@@ -1,13 +1,14 @@
 "use client";
 
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap, GeoJSON } from "react-leaflet";
 import { Pencil, Trash2 } from "lucide-react";
 import "leaflet/dist/leaflet.css";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
 import "leaflet-defaulticon-compatibility";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import L from "leaflet";
 import type { Database } from "@/lib/supabase/database.types";
+import { ISO_A3_TO_A2 } from "@/lib/country-mapping";
 
 type TravelLog = Database["public"]["Tables"]["travel_logs"]["Row"];
 
@@ -42,6 +43,46 @@ const customIcon = new L.DivIcon({
 });
 
 export default function LeafletMap({ logs, onMarkerClick, onEdit, onDelete }: LeafletMapProps) {
+    const [geoJsonData, setGeoJsonData] = useState<any>(null);
+
+    // Fetch GeoJSON data on mount
+    useEffect(() => {
+        fetch("/world-countries.json")
+            .then((res) => {
+                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                return res.json();
+            })
+            .then((data) => {
+                setGeoJsonData(data);
+            })
+            .catch((err) => console.error("LeafletMap: Failed to load map data", err));
+    }, []); // Run only on mount
+
+    // Style function for countries
+    const geoJsonStyle = (feature: any) => {
+        const countryIdA3 = feature.id; // ISO A3 code from GeoJSON (e.g., "USA")
+        const countryIdA2 = ISO_A3_TO_A2[countryIdA3]; // Convert to A2 (e.g., "US")
+
+        // Check if user has visited this country (case insensitive check)
+        const isVisited = logs.some(log =>
+            log.country_code &&
+            countryIdA2 &&
+            log.country_code.toUpperCase() === countryIdA2.toUpperCase()
+        );
+
+        if (isVisited) {
+            // console.log(`Highlighting ${feature.properties.name}`);
+        }
+
+        return {
+            fillColor: isVisited ? "#00FFCC" : "transparent", // Highlight visited
+            fillOpacity: isVisited ? 0.2 : 0,
+            weight: isVisited ? 1 : 0.5,
+            color: isVisited ? "#00FFCC" : "#333", // Border color
+            dashArray: isVisited ? "" : "3",
+        };
+    };
+
     return (
         <MapContainer
             center={[20, 0]}
@@ -55,6 +96,15 @@ export default function LeafletMap({ logs, onMarkerClick, onEdit, onDelete }: Le
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
                 url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
             />
+
+            {/* GeoJSON Layer for Country Highlighting */}
+            {geoJsonData && (
+                <GeoJSON
+                    key={`geojson-${logs.length}`} // Force re-render when logs change
+                    data={geoJsonData}
+                    style={geoJsonStyle}
+                />
+            )}
 
             {/* Markers */}
             {logs.map((log) => (

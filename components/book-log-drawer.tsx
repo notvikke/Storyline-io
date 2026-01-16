@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
-import { BookOpen, Search, Star, X, Loader2 } from "lucide-react";
+import { BookOpen, Search, Star, X, Loader2, Check, Clock } from "lucide-react";
 import {
     Drawer,
     DrawerContent,
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface BookSearchResult {
     isbn: string | null;
@@ -29,9 +30,10 @@ interface BookLogDrawerProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onSuccess?: () => void;
+    editItem?: any;
 }
 
-export function BookLogDrawer({ open, onOpenChange, onSuccess }: BookLogDrawerProps) {
+export function BookLogDrawer({ open, onOpenChange, onSuccess, editItem }: BookLogDrawerProps) {
     const { user } = useUser();
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState<BookSearchResult[]>([]);
@@ -44,6 +46,39 @@ export function BookLogDrawer({ open, onOpenChange, onSuccess }: BookLogDrawerPr
     );
     const [searching, setSearching] = useState(false);
     const [saving, setSaving] = useState(false);
+
+    // "completed" vs "planning"
+    const [status, setStatus] = useState<"completed" | "planning">("completed");
+
+    // Initialize editing state
+    useEffect(() => {
+        if (open && editItem) {
+            setStatus("completed");
+            setSelectedBook({
+                isbn: editItem.isbn,
+                title: editItem.title,
+                author: editItem.author,
+                publishYear: editItem.publish_year,
+                coverUrl: editItem.cover_url,
+                pageCount: editItem.page_count,
+                key: editItem.id // Just for internal key
+            });
+            setNotes(editItem.notes || "");
+            if (editItem.rating) setRating(editItem.rating);
+            if (editItem.started_date) setStartedDate(editItem.started_date);
+            if (editItem.finished_date) setFinishedDate(editItem.finished_date);
+            else setFinishedDate(new Date().toISOString().split("T")[0]);
+        } else if (open) {
+            setStatus("completed");
+            setSearchResults([]);
+            setSelectedBook(null);
+            setRating(0);
+            setNotes("");
+            setSearchQuery("");
+            setStartedDate("");
+            setFinishedDate(new Date().toISOString().split("T")[0]);
+        }
+    }, [open, editItem]);
 
     const handleSearch = async () => {
         if (!searchQuery.trim()) return;
@@ -77,24 +112,29 @@ export function BookLogDrawer({ open, onOpenChange, onSuccess }: BookLogDrawerPr
 
         setSaving(true);
         try {
-            const response = await fetch("/api/book-logs", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    user_id: user.id,
-                    isbn: selectedBook.isbn,
-                    title: selectedBook.title,
-                    author: selectedBook.author,
-                    publish_year: selectedBook.publishYear,
-                    cover_url: selectedBook.coverUrl,
-                    page_count: selectedBook.pageCount,
-                    rating: rating || null,
-                    notes: notes || null,
-                    started_date: startedDate || null,
-                    finished_date: finishedDate,
-                }),
+            const payload = {
+                user_id: user.id,
+                isbn: selectedBook.isbn,
+                title: selectedBook.title,
+                author: selectedBook.author,
+                publish_year: selectedBook.publishYear,
+                cover_url: selectedBook.coverUrl,
+                page_count: selectedBook.pageCount,
+                rating: status === "completed" ? (rating || null) : null,
+                notes: notes || null,
+                started_date: status === "completed" ? (startedDate || null) : null,
+                finished_date: status === "completed" ? finishedDate : null,
+                status: status,
+            };
+
+            const url = "/api/book-logs";
+            const method = editItem ? "PATCH" : "POST";
+            const body = editItem ? JSON.stringify({ ...payload, id: editItem.id }) : JSON.stringify(payload);
+
+            const response = await fetch(url, {
+                method,
+                headers: { "Content-Type": "application/json" },
+                body,
             });
 
             if (!response.ok) {
@@ -124,10 +164,10 @@ export function BookLogDrawer({ open, onOpenChange, onSuccess }: BookLogDrawerPr
                 <DrawerHeader>
                     <DrawerTitle className="flex items-center gap-2">
                         <BookOpen className="text-secondary" size={24} />
-                        Log a Book
+                        {editItem ? "Complete Your Journey" : "Log a Book"}
                     </DrawerTitle>
                     <DrawerDescription>
-                        Search for a book and add it to your reading list
+                        {editItem ? "Rate and review this book to add it to your finished list." : "Search for a book and add it to your reading list"}
                     </DrawerDescription>
                 </DrawerHeader>
 
@@ -212,72 +252,106 @@ export function BookLogDrawer({ open, onOpenChange, onSuccess }: BookLogDrawerPr
                                             </p>
                                         )}
                                     </div>
+                                    {!editItem && (
+                                        <button
+                                            onClick={() => setSelectedBook(null)}
+                                            className="text-muted-foreground hover:text-foreground h-fit"
+                                        >
+                                            <X size={20} />
+                                        </button>
+                                    )}
+                                </div>
+
+                                {/* Status Selection (Tabs) */}
+                                <div className="flex p-1 bg-muted rounded-lg">
                                     <button
-                                        onClick={() => setSelectedBook(null)}
-                                        className="text-muted-foreground hover:text-foreground"
+                                        onClick={() => setStatus("completed")}
+                                        className={cn(
+                                            "flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-md transition-all",
+                                            status === "completed"
+                                                ? "bg-secondary text-secondary-foreground shadow-sm"
+                                                : "text-muted-foreground hover:text-foreground"
+                                        )}
                                     >
-                                        <X size={20} />
+                                        <Check size={16} />
+                                        Read
+                                    </button>
+                                    <button
+                                        onClick={() => setStatus("planning")}
+                                        className={cn(
+                                            "flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-md transition-all",
+                                            status === "planning"
+                                                ? "bg-secondary text-secondary-foreground shadow-sm"
+                                                : "text-muted-foreground hover:text-foreground"
+                                        )}
+                                    >
+                                        <Clock size={16} />
+                                        Planning
                                     </button>
                                 </div>
 
-                                {/* Rating */}
-                                <div>
-                                    <label className="block text-sm font-medium mb-2">
-                                        Your Rating
-                                    </label>
-                                    <div className="flex gap-2">
-                                        {[1, 2, 3, 4, 5].map((star) => (
-                                            <button
-                                                key={star}
-                                                onClick={() => setRating(star)}
-                                                className="transition-all"
-                                            >
-                                                <Star
-                                                    size={28}
-                                                    className={
-                                                        star <= rating
-                                                            ? "fill-secondary text-secondary"
-                                                            : "text-muted-foreground"
-                                                    }
-                                                />
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
+                                {status === "completed" && (
+                                    <>
+                                        {/* Rating */}
+                                        <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                                            <label className="block text-sm font-medium mb-2">
+                                                Your Rating
+                                            </label>
+                                            <div className="flex gap-2">
+                                                {[1, 2, 3, 4, 5].map((star) => (
+                                                    <button
+                                                        key={star}
+                                                        onClick={() => setRating(star)}
+                                                        className="transition-all hover:scale-110"
+                                                    >
+                                                        <Star
+                                                            size={28}
+                                                            className={
+                                                                star <= rating
+                                                                    ? "fill-secondary text-secondary"
+                                                                    : "text-muted-foreground"
+                                                            }
+                                                        />
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
 
-                                {/* Started Date */}
-                                <div>
-                                    <label className="block text-sm font-medium mb-2">
-                                        Started Reading (Optional)
-                                    </label>
-                                    <Input
-                                        type="date"
-                                        value={startedDate}
-                                        onChange={(e) => setStartedDate(e.target.value)}
-                                    />
-                                </div>
+                                        {/* Started Date */}
+                                        <div className="animate-in fade-in slide-in-from-top-2 duration-300 delay-75">
+                                            <label className="block text-sm font-medium mb-2">
+                                                Started Reading (Optional)
+                                            </label>
+                                            <Input
+                                                type="date"
+                                                value={startedDate}
+                                                onChange={(e) => setStartedDate(e.target.value)}
+                                            />
+                                        </div>
 
-                                {/* Finished Date */}
-                                <div>
-                                    <label className="block text-sm font-medium mb-2">
-                                        Finished Reading
-                                    </label>
-                                    <Input
-                                        type="date"
-                                        value={finishedDate}
-                                        onChange={(e) => setFinishedDate(e.target.value)}
-                                    />
-                                </div>
+                                        {/* Finished Date */}
+                                        <div className="animate-in fade-in slide-in-from-top-2 duration-300 delay-100">
+                                            <label className="block text-sm font-medium mb-2">
+                                                Finished Reading
+                                            </label>
+                                            <Input
+                                                type="date"
+                                                value={finishedDate}
+                                                onChange={(e) => setFinishedDate(e.target.value)}
+                                            />
+                                        </div>
+                                    </>
+                                )}
 
                                 {/* Notes */}
-                                <div>
+                                <div className="animate-in fade-in slide-in-from-top-2 duration-300 delay-100">
                                     <label className="block text-sm font-medium mb-2">
-                                        Notes (Optional)
+                                        {status === "planning" ? "Why do you want to read this?" : "Notes (Optional)"}
                                     </label>
                                     <textarea
                                         value={notes}
                                         onChange={(e) => setNotes(e.target.value)}
-                                        placeholder="Your thoughts about this book..."
+                                        placeholder={status === "planning" ? "Highly recommended by..." : "Your thoughts about this book..."}
                                         className="w-full h-24 px-3 py-2 bg-background border border-border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-secondary"
                                     />
                                 </div>
@@ -291,7 +365,7 @@ export function BookLogDrawer({ open, onOpenChange, onSuccess }: BookLogDrawerPr
                         <Button
                             onClick={handleSave}
                             disabled={saving}
-                            className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/90"
+                            className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/90 font-bold"
                         >
                             {saving ? (
                                 <>
@@ -299,7 +373,7 @@ export function BookLogDrawer({ open, onOpenChange, onSuccess }: BookLogDrawerPr
                                     Saving...
                                 </>
                             ) : (
-                                "Save Book"
+                                status === "completed" ? "Add to My Journey" : "Add to Planning"
                             )}
                         </Button>
                     )}
