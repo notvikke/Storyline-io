@@ -134,7 +134,17 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-border py-8 px-6">
         <div className="max-w-7xl mx-auto text-center text-muted-foreground text-sm">
-          <p>© 2026 Storyline. Crafted with ❤️ for memory keepers.</p>
+          <p>
+            © 2026 Storyline. Crafted with ❤️ by{" "}
+            <a
+              href="https://notvikke.github.io/portfolio/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline font-medium"
+            >
+              Vignesh
+            </a>
+          </p>
         </div>
       </footer>
 
