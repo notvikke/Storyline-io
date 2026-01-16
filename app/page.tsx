@@ -30,12 +30,7 @@ export default function Home() {
             </span>
           </Link>
           <div className="flex items-center gap-4">
-            <Link
-              href="/blog"
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Blog
-            </Link>
+
             <SignInButton mode="modal">
               <button className="px-4 py-2 text-sm font-medium hover:text-primary transition-colors">
                 Sign In
