@@ -128,3 +128,26 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Force hide Clerk Dev Badge and all branding watermarks */
+#clerk-dev-badge,
+.cl-dev-badge,
+.cl-internal-b3fm6y,
+.cl-internal-phfx96,
+.cl-internal-1809773,
+.cl-internal-1m0m56p,
+div[data-clerk-theme="dark"]>div:last-child,
+.cl-userButtonPopoverFooter {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  width: 0 !important;
+}
+
+/* Ensure no Clerk branding images are visible */
+img[src*="clerk"],
+a[href*="clerk.com"] {
+  display: none !important;
+}
