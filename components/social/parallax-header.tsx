@@ -98,6 +98,7 @@ export function ParallaxHeader({ profile, isOwner, onEditClick }: ParallaxHeader
                                 social_instagram={profile.social_instagram}
                                 social_tiktok={profile.social_tiktok}
                                 social_snapchat={profile.social_snapchat}
+                                social_spotify={profile.social_spotify}
                                 social_email={profile.social_email}
                                 social_website={profile.social_website}
                             />
@@ -111,6 +112,7 @@ export function ParallaxHeader({ profile, isOwner, onEditClick }: ParallaxHeader
                             social_instagram={profile.social_instagram}
                             social_tiktok={profile.social_tiktok}
                             social_snapchat={profile.social_snapchat}
+                            social_spotify={profile.social_spotify}
                             social_email={profile.social_email}
                             social_website={profile.social_website}
                         />

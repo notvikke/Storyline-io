@@ -286,6 +286,7 @@ export interface Database {
                     social_instagram: string | null
                     social_tiktok: string | null
                     social_snapchat: string | null
+                    social_spotify: string | null
                     social_email: string | null
                     social_website: string | null
                     pinned_movie_id: string | null
@@ -305,6 +306,7 @@ export interface Database {
                     social_instagram?: string | null
                     social_tiktok?: string | null
                     social_snapchat?: string | null
+                    social_spotify?: string | null
                     social_email?: string | null
                     social_website?: string | null
                     pinned_movie_id?: string | null

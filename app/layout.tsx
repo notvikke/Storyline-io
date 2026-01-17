@@ -47,8 +47,6 @@ export default function RootLayout({
           socialButtonsBlockButton:
             "bg-white/5 border border-white/10 hover:bg-white/10",
           footerActionLink: "text-[#00FFCC] hover:text-[#FF7EB6]",
-          userButtonPopoverFooter: "hidden",
-          devButton: "hidden",
         },
       }}
     >
