@@ -36,11 +36,7 @@ export default function Home() {
                 Sign In
               </button>
             </SignInButton>
-            <SignUpButton mode="modal">
-              <button className="px-6 py-2 text-sm font-bold bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all duration-200 shadow-lg shadow-primary/30">
-                Get Started
-              </button>
-            </SignUpButton>
+
           </div>
         </div>
       </nav>

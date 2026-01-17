@@ -1,6 +1,8 @@
 "use client";
 
-import { MapContainer, TileLayer, Marker, Popup, useMap, GeoJSON } from "react-leaflet";
+import { useTheme } from "next-themes";
+
+import { MapContainer, TileLayer, Marker, Popup, useMap, GeoJSON, ZoomControl } from "react-leaflet";
 import { Pencil, Trash2 } from "lucide-react";
 import "leaflet/dist/leaflet.css";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
@@ -43,6 +45,7 @@ const customIcon = new L.DivIcon({
 });
 
 export default function LeafletMap({ logs, onMarkerClick, onEdit, onDelete }: LeafletMapProps) {
+    const { resolvedTheme } = useTheme();
     const [geoJsonData, setGeoJsonData] = useState<any>(null);
 
     // Fetch GeoJSON data on mount
@@ -71,7 +74,7 @@ export default function LeafletMap({ logs, onMarkerClick, onEdit, onDelete }: Le
         );
 
         if (isVisited) {
-            // console.log(`Highlighting ${feature.properties.name}`);
+
         }
 
         return {
@@ -90,11 +93,16 @@ export default function LeafletMap({ logs, onMarkerClick, onEdit, onDelete }: Le
             scrollWheelZoom={true}
             style={{ height: "100%", width: "100%", borderRadius: "0.75rem", zIndex: 0 }}
             className="z-0"
+            zoomControl={false}
         >
-            {/* Dark Matter Tiles */}
+            <ZoomControl position="bottomright" />
+            {/* Dynamic Tiles based on Theme */}
             <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-                url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                url={resolvedTheme === 'light'
+                    ? "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                    : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                }
             />
 
             {/* GeoJSON Layer for Country Highlighting */}

@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        // 1. Recent Highlights (Completed)
+        // 1. Recent Highlights (Completed/Watching)
         const { data: recentMovie } = await supabaseAdmin
             .from("movie_logs")
             .select("*")
@@ -37,6 +37,15 @@ export async function GET(request: NextRequest) {
             .eq("user_id", userId)
             .eq("status", "completed")
             .order("finished_date", { ascending: false })
+            .limit(1)
+            .single();
+
+        const { data: recentTv } = await supabaseAdmin
+            .from("tv_logs")
+            .select("*")
+            .eq("user_id", userId)
+            .in("status", ["watching", "completed"]) // Show recently updated TV log
+            .order("created_at", { ascending: false })
             .limit(1)
             .single();
 
@@ -57,9 +66,18 @@ export async function GET(request: NextRequest) {
             .order("created_at", { ascending: false })
             .limit(3);
 
+        const { data: planningTv } = await supabaseAdmin
+            .from("tv_logs")
+            .select("*")
+            .eq("user_id", userId)
+            .eq("status", "planning")
+            .order("created_at", { ascending: false })
+            .limit(3);
+
         const combinedPlanning = [
             ...(planningMovies || []).map((m: any) => ({ ...m, type: "movie" })),
-            ...(planningBooks || []).map((b: any) => ({ ...b, type: "book" }))
+            ...(planningBooks || []).map((b: any) => ({ ...b, type: "book" })),
+            ...(planningTv || []).map((t: any) => ({ ...t, type: "tv" }))
         ]
             .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
             .slice(0, 3);
@@ -90,6 +108,7 @@ export async function GET(request: NextRequest) {
             recent: {
                 movie: recentMovie || null,
                 book: recentBook || null,
+                tv: recentTv || null,
             },
             planning: combinedPlanning,
             flashback: flashback || null

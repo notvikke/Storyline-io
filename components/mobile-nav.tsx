@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Film, BookOpen, MapPin, Calendar, FileText } from "lucide-react";
+import { Home, Film, Tv, BookOpen, MapPin, Calendar, FileText } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 
 const navItems = [
     { href: "/dashboard", label: "Home", icon: Home },
     { href: "/movies", label: "Movies", icon: Film },
+    { href: "/tv", label: "TV", icon: Tv },
     { href: "/books", label: "Books", icon: BookOpen },
     { href: "/calendar", label: "Date", icon: Calendar },
     { href: "/travel", label: "Travel", icon: MapPin },

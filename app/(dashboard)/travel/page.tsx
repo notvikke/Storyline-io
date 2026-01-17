@@ -31,6 +31,7 @@ export default function TravelPage() {
     const [editingLog, setEditingLog] = useState<TravelLog | null>(null);
 
     // UI State
+    const [showStats, setShowStats] = useState(true);
     const [showCountries, setShowCountries] = useState(true);
     const [sortBy, setSortBy] = useState<"newest" | "oldest">("newest");
     const [filterYear, setFilterYear] = useState<string>("all");
@@ -149,44 +150,55 @@ export default function TravelPage() {
                                 <p className="text-xs text-muted-foreground">Your global footprint</p>
                             </div>
                         </div>
+                        <button
+                            onClick={() => setShowStats(!showStats)}
+                            className="p-1 hover:bg-muted/50 rounded-md transition-colors"
+                        >
+                            {showStats ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                        </button>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3 text-center mb-4">
-                        <div className="p-2 bg-muted/50 rounded-lg">
-                            <p className="text-2xl font-bold text-chart-3">{logs.length}</p>
-                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Places</p>
-                        </div>
-                        <div className="p-2 bg-muted/50 rounded-lg">
-                            <p className="text-2xl font-bold text-chart-3">{processedData.distinctCountries.length}</p>
-                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Countries</p>
-                        </div>
-                    </div>
+                    {showStats && (
+                        <>
 
-                    {/* Filters */}
-                    <div className="flex gap-2">
-                        <div className="relative flex-1">
-                            <select
-                                value={filterYear}
-                                onChange={(e) => setFilterYear(e.target.value)}
-                                className="w-full appearance-none bg-muted/50 border border-transparent hover:border-border rounded-md px-3 py-1.5 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-chart-3"
-                            >
-                                <option value="all">All Years</option>
-                                {processedData.years.map(y => <option key={y} value={y}>{y}</option>)}
-                            </select>
-                            <ChevronDown className="absolute right-2 top-1.5 text-muted-foreground pointer-events-none" size={14} />
-                        </div>
-                        <div className="relative flex-1">
-                            <select
-                                value={sortBy}
-                                onChange={(e) => setSortBy(e.target.value as any)}
-                                className="w-full appearance-none bg-muted/50 border border-transparent hover:border-border rounded-md px-3 py-1.5 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-chart-3"
-                            >
-                                <option value="newest">Newest First</option>
-                                <option value="oldest">Oldest First</option>
-                            </select>
-                            <ArrowUpDown className="absolute right-2 top-1.5 text-muted-foreground pointer-events-none" size={14} />
-                        </div>
-                    </div>
+                            <div className="grid grid-cols-2 gap-3 text-center mb-4">
+                                <div className="p-2 bg-muted/50 rounded-lg">
+                                    <p className="text-2xl font-bold text-chart-3">{logs.length}</p>
+                                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Places</p>
+                                </div>
+                                <div className="p-2 bg-muted/50 rounded-lg">
+                                    <p className="text-2xl font-bold text-chart-3">{processedData.distinctCountries.length}</p>
+                                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Countries</p>
+                                </div>
+                            </div>
+
+                            {/* Filters */}
+                            <div className="flex gap-2">
+                                <div className="relative flex-1">
+                                    <select
+                                        value={filterYear}
+                                        onChange={(e) => setFilterYear(e.target.value)}
+                                        className="w-full appearance-none bg-muted/50 border border-transparent hover:border-border rounded-md px-3 py-1.5 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-chart-3"
+                                    >
+                                        <option value="all">All Years</option>
+                                        {processedData.years.map(y => <option key={y} value={y}>{y}</option>)}
+                                    </select>
+                                    <ChevronDown className="absolute right-2 top-1.5 text-muted-foreground pointer-events-none" size={14} />
+                                </div>
+                                <div className="relative flex-1">
+                                    <select
+                                        value={sortBy}
+                                        onChange={(e) => setSortBy(e.target.value as any)}
+                                        className="w-full appearance-none bg-muted/50 border border-transparent hover:border-border rounded-md px-3 py-1.5 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-chart-3"
+                                    >
+                                        <option value="newest">Newest First</option>
+                                        <option value="oldest">Oldest First</option>
+                                    </select>
+                                    <ArrowUpDown className="absolute right-2 top-1.5 text-muted-foreground pointer-events-none" size={14} />
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </div>
 
                 {/* Countries List (Collapsible) */}

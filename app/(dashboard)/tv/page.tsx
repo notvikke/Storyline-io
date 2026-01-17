@@ -1,43 +1,46 @@
 "use client";
 
 import { useUser } from "@clerk/nextjs";
-import { Film, Star, Plus, Loader2, Trash2, SlidersHorizontal, Check, Calendar } from "lucide-react";
+import { Tv, Star, Plus, Loader2, Trash2, SlidersHorizontal, Check, Calendar, PlayCircle } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
-import { MovieLogDrawer } from "@/components/movie-log-drawer";
+import { TvLogDrawer } from "@/components/tv-log-drawer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Database } from "@/lib/supabase/database.types";
 import { cn } from "@/lib/utils";
 import { useGridDensity } from "@/hooks/use-grid-density";
 import { GridDensityToggle } from "@/components/grid-density-toggle";
 
-type MovieLog = Database["public"]["Tables"]["movie_logs"]["Row"];
+type TvLog = Database["public"]["Tables"]["tv_logs"]["Row"];
 
-export default function MoviesPage() {
+export default function TvPage() {
     const { user, isLoaded } = useUser();
-    const [movies, setMovies] = useState<MovieLog[]>([]);
+    const [shows, setShows] = useState<TvLog[]>([]);
     const [loading, setLoading] = useState(true);
     const [drawerOpen, setDrawerOpen] = useState(false);
-    const [editItem, setEditItem] = useState<MovieLog | undefined>(undefined);
+    const [editItem, setEditItem] = useState<TvLog | undefined>(undefined);
 
     // Filter & Sort states
     const [filterRating, setFilterRating] = useState<number | "all">("all");
     const [filterYear, setFilterYear] = useState<string | "all">("all");
-    const [filterMonth, setFilterMonth] = useState<string | "all">("all");
     const [sortBy, setSortBy] = useState<"date" | "rating" | "title">("date");
     const [showFilters, setShowFilters] = useState(false);
     const { density, setDensity } = useGridDensity();
 
-    const fetchMovies = async () => {
+    const fetchShows = async () => {
         if (!user?.id) return;
 
         setLoading(true);
         try {
-            const response = await fetch("/api/movie-logs");
-            if (!response.ok) throw new Error("Failed to fetch movies");
+            const response = await fetch("/api/tv-logs");
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                console.error("Failed to fetch shows:", errData);
+                throw new Error(errData.error || "Failed to fetch tv shows");
+            }
             const data = await response.json();
-            setMovies(data);
+            setShows(data);
         } catch (error) {
-            console.error("Error fetching movies:", error);
+            console.error("Error fetching tv shows:", error);
         } finally {
             setLoading(false);
         }
@@ -46,15 +49,15 @@ export default function MoviesPage() {
     useEffect(() => {
         if (isLoaded) {
             if (user?.id) {
-                fetchMovies();
+                fetchShows();
             } else {
                 setLoading(false);
             }
         }
     }, [isLoaded, user?.id]);
 
-    const handleComplete = (movie: MovieLog) => {
-        setEditItem(movie);
+    const handleEdit = (show: TvLog) => {
+        setEditItem(show);
         setDrawerOpen(true);
     };
 
@@ -63,60 +66,40 @@ export default function MoviesPage() {
         if (!open) setEditItem(undefined);
     };
 
-    // Get unique years and months from COMPLETED movies only
-    const completedMovies = useMemo(() => movies.filter(m => m.status === "completed"), [movies]);
+    // Get unique years from COMPLETED/WATCHING shows
+    const activeShows = useMemo(() => shows.filter(s => s.status !== "planning"), [shows]);
 
     const availableYears = useMemo(() => {
         const years = new Set(
-            completedMovies
-                .map(m => m.watched_date ? new Date(m.watched_date).getFullYear() : NaN)
+            activeShows
+                .map(s => s.created_at ? new Date(s.created_at).getFullYear() : NaN)
                 .filter(y => !isNaN(y))
         );
         return Array.from(years).sort((a, b) => b - a);
-    }, [completedMovies]);
+    }, [activeShows]);
 
-    const availableMonths = useMemo(() => {
-        const months = new Set(
-            completedMovies.map(m => {
-                if (!m.watched_date) return "";
-                const date = new Date(m.watched_date);
-                if (isNaN(date.getTime())) return "";
-                return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-            })
-        );
-        return Array.from(months).filter(m => m !== "").sort().reverse();
-    }, [completedMovies]);
 
-    // Filtered and sorted movies (applied to both lists locally)
-    const getFilteredMovies = (list: MovieLog[]) => {
+    // Filtered and sorted shows
+    const getFilteredShows = (list: TvLog[]) => {
         let filtered = [...list];
 
         // Filter by rating
         if (filterRating !== "all") {
-            filtered = filtered.filter(m => m.rating === filterRating);
+            filtered = filtered.filter(s => s.rating === filterRating);
         }
 
         // Filter by year
         if (filterYear !== "all") {
-            filtered = filtered.filter(m =>
-                new Date(m.watched_date || "").getFullYear() === parseInt(filterYear)
+            filtered = filtered.filter(s =>
+                new Date(s.created_at).getFullYear() === parseInt(filterYear)
             );
-        }
-
-        // Filter by month
-        if (filterMonth !== "all") {
-            filtered = filtered.filter(m => {
-                const date = new Date(m.watched_date || "");
-                const monthStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-                return monthStr === filterMonth;
-            });
         }
 
         // Sort
         filtered.sort((a, b) => {
             if (sortBy === "date") {
-                const dateA = new Date(a.watched_date || a.created_at).getTime();
-                const dateB = new Date(b.watched_date || b.created_at).getTime();
+                const dateA = new Date(a.created_at).getTime();
+                const dateB = new Date(b.created_at).getTime();
                 return dateB - dateA;
             } else if (sortBy === "rating") {
                 return (b.rating || 0) - (a.rating || 0);
@@ -128,94 +111,86 @@ export default function MoviesPage() {
         return filtered;
     };
 
-    const journeyMovies = useMemo(() => getFilteredMovies(movies.filter(m => m.status === "completed")), [movies, filterRating, filterYear, filterMonth, sortBy]);
-    const planningMovies = useMemo(() => getFilteredMovies(movies.filter(m => m.status === "planning")), [movies, filterRating, filterYear, filterMonth, sortBy]);
+    const journeyShows = useMemo(() => getFilteredShows(shows.filter(s => s.status === "completed")), [shows, filterRating, filterYear, sortBy]);
+    const watchingShows = useMemo(() => getFilteredShows(shows.filter(s => s.status === "watching")), [shows, filterRating, filterYear, sortBy]);
+    const planningShows = useMemo(() => getFilteredShows(shows.filter(s => s.status === "planning")), [shows, filterRating, filterYear, sortBy]);
 
     const handleDelete = async (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
-        if (!confirm("Are you sure you want to delete this movie?")) return;
+        if (!confirm("Are you sure you want to delete this show?")) return;
 
         try {
-            const response = await fetch(`/api/movie-logs?id=${id}`, {
+            const response = await fetch(`/api/tv-logs?id=${id}`, {
                 method: "DELETE",
             });
-            if (!response.ok) throw new Error("Failed to delete movie");
-            fetchMovies();
+            if (!response.ok) throw new Error("Failed to delete show");
+            fetchShows();
         } catch (error) {
-            console.error("Error deleting movie:", error);
-            alert("Failed to delete movie");
+            console.error("Error deleting show:", error);
+            alert("Failed to delete show");
         }
     };
 
-    const MovieGrid = ({ items, isPlanning = false }: { items: MovieLog[], isPlanning?: boolean }) => (
+    const TvGrid = ({ items, status }: { items: TvLog[], status: "completed" | "planning" | "watching" }) => (
         <div className={cn(
             "grid grid-cols-2 gap-4 animate-in fade-in duration-500",
-            // Tablet: 3 columns (default) or 4 columns (if density is high)
             "md:grid-cols-3",
-            // Desktop: Dynamic based on density
             density === 5 ? "lg:grid-cols-5" : "lg:grid-cols-7",
-            // Tighter gap for high density
             density === 7 ? "gap-4" : "gap-6"
         )}>
-            {items.map((movie) => (
+            {items.map((show) => (
                 <div
-                    key={movie.id}
+                    key={show.id}
                     className={cn(
                         "group relative overflow-hidden rounded-xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10",
-                        isPlanning && "opacity-80 hover:opacity-100"
+                        status === "planning" && "opacity-80 hover:opacity-100"
                     )}
                 >
                     {/* Poster */}
                     <div className="relative">
-                        {movie.poster_url ? (
+                        {show.poster_url ? (
                             <img
-                                src={movie.poster_url}
-                                alt={movie.title}
+                                src={show.poster_url}
+                                alt={show.title}
                                 className={cn(
                                     "w-full h-64 object-cover transition-all duration-500",
-                                    isPlanning && "grayscale-[0.5] group-hover:grayscale-0"
+                                    status === "planning" && "grayscale-[0.5] group-hover:grayscale-0"
                                 )}
                             />
                         ) : (
                             <div className="w-full h-64 bg-muted flex items-center justify-center">
-                                <Film size={48} className="text-muted-foreground" />
+                                <Tv size={48} className="text-muted-foreground" />
                             </div>
                         )}
 
                         {/* Overlay Gradient */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
 
-                        {/* Planning: Move to Completed Button */}
-                        {isPlanning && (
-                            <button
-                                onClick={() => handleComplete(movie)}
-                                className="absolute bottom-4 right-4 p-3 bg-primary text-black rounded-full shadow-lg hover:scale-110 transition-all active:scale-95 z-20"
-                                title="Mark as Watched"
-                            >
-                                <Check size={20} strokeWidth={3} />
-                            </button>
-                        )}
+                        {/* Edit Button overlay */}
+                        <button
+                            onClick={() => handleEdit(show)}
+                            className="absolute inset-0 z-10 w-full h-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center bg-black/40 backdrop-blur-sm text-white font-medium"
+                        >
+                            Update Status
+                        </button>
                     </div>
 
                     {/* Content */}
                     <div className="p-4 space-y-2">
                         <div className="flex justify-between items-start gap-2">
-                            <h3 className="text-lg font-bold line-clamp-1 leading-tight">{movie.title}</h3>
-                            {isPlanning && <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 bg-muted rounded text-muted-foreground whitespace-nowrap">Planned</span>}
+                            <h3 className="text-lg font-bold line-clamp-1 leading-tight">{show.title}</h3>
+                            {status === "planning" && <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 bg-muted rounded text-muted-foreground whitespace-nowrap">Plan</span>}
+                            {status === "watching" && <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 bg-primary/20 text-primary rounded whitespace-nowrap">Watching</span>}
                         </div>
 
-                        <p className="text-sm text-muted-foreground">
-                            {movie.year} • {movie.director || "Unknown Director"}
-                        </p>
-
-                        {!isPlanning && movie.rating && (
+                        {status === "completed" && show.rating && (
                             <div className="flex gap-1">
                                 {[...Array(5)].map((_, i) => (
                                     <Star
                                         key={i}
                                         size={16}
                                         className={
-                                            i < movie.rating!
+                                            i < show.rating!
                                                 ? "fill-primary text-primary"
                                                 : "text-muted-foreground"
                                         }
@@ -224,25 +199,22 @@ export default function MoviesPage() {
                             </div>
                         )}
 
-                        {movie.notes && (
+                        {show.notes && (
                             <p className="text-sm text-muted-foreground line-clamp-2 italic">
-                                "{movie.notes}"
+                                "{show.notes}"
                             </p>
                         )}
 
                         <div className="pt-2 flex items-center justify-between text-xs text-muted-foreground border-t border-border/50 mt-2">
                             <div className="flex items-center gap-1">
                                 <Calendar size={12} />
-                                {isPlanning
-                                    ? `Added: ${new Date(movie.created_at).toLocaleDateString()}`
-                                    : `Watched: ${new Date(movie.watched_date || "").toLocaleDateString()}`
-                                }
+                                Log: {new Date(show.created_at).toLocaleDateString()}
                             </div>
                         </div>
 
                         {/* Delete Button */}
                         <button
-                            onClick={(e) => handleDelete(movie.id, e)}
+                            onClick={(e) => handleDelete(show.id, e)}
                             className="absolute top-2 right-2 p-2 bg-black/60 backdrop-blur-md text-white rounded-lg opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity hover:bg-destructive z-20"
                         >
                             <Trash2 size={16} />
@@ -258,11 +230,11 @@ export default function MoviesPage() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                    <Film className="text-primary" size={40} />
+                    <Tv className="text-primary" size={40} />
                     <div>
-                        <h1 className="text-4xl font-bold">Movies</h1>
+                        <h1 className="text-4xl font-bold">TV Shows</h1>
                         <p className="text-muted-foreground">
-                            Track your cinematic journey
+                            Track your binge-watching sessions
                         </p>
                     </div>
                 </div>
@@ -271,7 +243,7 @@ export default function MoviesPage() {
                     className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all shadow-lg shadow-primary/30 w-full md:w-auto justify-center"
                 >
                     <Plus size={20} />
-                    Log Movie
+                    Log TV Show
                 </button>
             </div>
 
@@ -280,11 +252,12 @@ export default function MoviesPage() {
                     <Loader2 className="animate-spin text-primary" size={40} />
                 </div>
             ) : (
-                <Tabs defaultValue="journey" className="w-full">
+                <Tabs defaultValue="watching" className="w-full">
                     <div className="flex items-center justify-between mb-6">
                         <TabsList className="bg-muted/50 p-1">
-                            <TabsTrigger value="journey" className="px-6">My Journey ({movies.filter(m => m.status === 'completed').length})</TabsTrigger>
-                            <TabsTrigger value="planning" className="px-6">Planning ({movies.filter(m => m.status === 'planning').length})</TabsTrigger>
+                            <TabsTrigger value="watching" className="px-6">Watching ({shows.filter(s => s.status === 'watching').length})</TabsTrigger>
+                            <TabsTrigger value="journey" className="px-6">Completed ({shows.filter(s => s.status === 'completed').length})</TabsTrigger>
+                            <TabsTrigger value="planning" className="px-6">Planning ({shows.filter(s => s.status === 'planning').length})</TabsTrigger>
                         </TabsList>
 
                         <div className="flex items-center gap-2">
@@ -331,7 +304,7 @@ export default function MoviesPage() {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium mb-2">Year</label>
+                                    <label className="block text-sm font-medium mb-2">Year Logged</label>
                                     <select
                                         value={filterYear}
                                         onChange={(e) => setFilterYear(e.target.value)}
@@ -341,56 +314,53 @@ export default function MoviesPage() {
                                         {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
                                     </select>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-2">Month</label>
-                                    <select
-                                        value={filterMonth}
-                                        onChange={(e) => setFilterMonth(e.target.value)}
-                                        className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                                    >
-                                        <option value="all">All Months</option>
-                                        {availableMonths.map(m => {
-                                            const [year, monthNum] = m.split("-");
-                                            const date = new Date(parseInt(year), parseInt(monthNum) - 1);
-                                            return <option key={m} value={m}>{date.toLocaleDateString("en-US", { month: "long", year: "numeric" })}</option>
-                                        })}
-                                    </select>
-                                </div>
                             </div>
                         </div>
                     )}
 
-                    <TabsContent value="journey" className="space-y-6">
-                        {journeyMovies.length === 0 ? (
+                    <TabsContent value="watching" className="space-y-6">
+                        {watchingShows.length === 0 ? (
                             <div className="text-center py-20 rounded-xl bg-card border border-border border-dashed">
-                                <Film className="mx-auto text-muted-foreground mb-4" size={48} />
-                                <h3 className="text-xl font-semibold mb-2">Your journey is empty</h3>
-                                <p className="text-muted-foreground">Start logging movies you've watched!</p>
+                                <PlayCircle className="mx-auto text-muted-foreground mb-4" size={48} />
+                                <h3 className="text-xl font-semibold mb-2">Not watching anything?</h3>
+                                <p className="text-muted-foreground">Find a new show to start bingeing!</p>
                             </div>
                         ) : (
-                            <MovieGrid items={journeyMovies} />
+                            <TvGrid items={watchingShows} status="watching" />
+                        )}
+                    </TabsContent>
+
+                    <TabsContent value="journey" className="space-y-6">
+                        {journeyShows.length === 0 ? (
+                            <div className="text-center py-20 rounded-xl bg-card border border-border border-dashed">
+                                <Tv className="mx-auto text-muted-foreground mb-4" size={48} />
+                                <h3 className="text-xl font-semibold mb-2">No completed shows yet</h3>
+                                <p className="text-muted-foreground">Mark shows as done when you finish them.</p>
+                            </div>
+                        ) : (
+                            <TvGrid items={journeyShows} status="completed" />
                         )}
                     </TabsContent>
 
                     <TabsContent value="planning" className="space-y-6">
-                        {planningMovies.length === 0 ? (
+                        {planningShows.length === 0 ? (
                             <div className="text-center py-20 rounded-xl bg-card border border-border border-dashed">
                                 <Plus className="mx-auto text-muted-foreground mb-4" size={48} />
-                                <h3 className="text-xl font-semibold mb-2">Nothing planned yet</h3>
-                                <p className="text-muted-foreground">Search for movies and add them to your planning list.</p>
+                                <h3 className="text-xl font-semibold mb-2">Watchlist empty</h3>
+                                <p className="text-muted-foreground">Search for shows and add them to your plan.</p>
                             </div>
                         ) : (
-                            <MovieGrid items={planningMovies} isPlanning={true} />
+                            <TvGrid items={planningShows} status="planning" />
                         )}
                     </TabsContent>
                 </Tabs>
             )}
 
             {/* Drawer */}
-            <MovieLogDrawer
+            <TvLogDrawer
                 open={drawerOpen}
                 onOpenChange={handleDrawerOpenChange}
-                onSuccess={fetchMovies}
+                onSuccess={fetchShows}
                 editItem={editItem}
             />
         </div>

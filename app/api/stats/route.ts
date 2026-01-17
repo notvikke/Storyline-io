@@ -24,17 +24,20 @@ export async function GET() {
         }
 
         // Get counts for all categories
-        const [moviesResult, booksResult, travelsResult] = await Promise.all([
+        // Get counts for all categories
+        const [moviesResult, booksResult, travelsResult, tvResult] = await Promise.all([
             supabaseAdmin.from("movie_logs").select("id", { count: "exact" }).eq("user_id", userId),
             supabaseAdmin.from("book_logs").select("id", { count: "exact" }).eq("user_id", userId),
             supabaseAdmin.from("travel_logs").select("id", { count: "exact" }).eq("user_id", userId),
+            supabaseAdmin.from("tv_logs").select("id", { count: "exact" }).eq("user_id", userId),
         ]);
 
         const stats = {
             moviesCount: moviesResult.count || 0,
             booksCount: booksResult.count || 0,
             travelsCount: travelsResult.count || 0,
-            totalMemories: (moviesResult.count || 0) + (booksResult.count || 0) + (travelsResult.count || 0),
+            tvCount: tvResult.count || 0,
+            totalMemories: (moviesResult.count || 0) + (booksResult.count || 0) + (travelsResult.count || 0) + (tvResult.count || 0),
         };
 
         return NextResponse.json(stats);

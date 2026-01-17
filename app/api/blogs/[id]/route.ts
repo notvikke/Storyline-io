@@ -11,9 +11,6 @@ const supabaseAdmin: any = createClient(
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const { userId } = await auth();
-        if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
         const resolvedParams = await params;
 
         const { data, error } = await supabaseAdmin
@@ -23,8 +20,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
             .single();
 
         if (error) throw error;
-        // Verify ownership
-        if (data.user_id !== userId) return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+        if (!data) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
         return NextResponse.json(data);
     } catch (error: any) {

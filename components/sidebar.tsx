@@ -5,9 +5,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserButton, useUser } from "@clerk/nextjs";
 import { DashboardLogo } from "./dashboard-logo";
+import { ModeToggle } from "./mode-toggle";
+import { SidebarProfileButton } from "./social/sidebar-profile-button";
 import {
     Home,
     Film,
+    Tv,
     BookOpen,
     MapPin,
     Calendar,
@@ -17,6 +20,7 @@ import {
 const navItems = [
     { href: "/dashboard", label: "Dashboard", icon: Home },
     { href: "/movies", label: "Movies", icon: Film },
+    { href: "/tv", label: "TV Shows", icon: Tv },
     { href: "/books", label: "Books", icon: BookOpen },
     { href: "/travel", label: "Travel", icon: MapPin },
     { href: "/calendar", label: "Calendar", icon: Calendar },
@@ -61,23 +65,28 @@ export const Sidebar = () => {
             </nav>
 
             {/* User Section */}
-            <div className="p-4 border-t border-sidebar-border">
-                <div className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-sidebar-accent/30 transition-colors">
-                    <UserButton
-                        appearance={{
-                            elements: {
-                                avatarBox: "w-9 h-9 border-2 border-primary/20",
-                            },
-                        }}
-                    />
-                    <div className="flex flex-col overflow-hidden">
-                        <span className="text-sm font-semibold truncate text-foreground">
-                            {user?.fullName || user?.username || "Storyline User"}
-                        </span>
-                        <span className="text-xs text-muted-foreground truncate">
-                            {user?.primaryEmailAddress?.emailAddress}
-                        </span>
+            <div className="p-4 border-t border-sidebar-border space-y-4">
+                <SidebarProfileButton />
+
+                <div className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-sidebar-accent/30 transition-colors justify-between">
+                    <div className="flex items-center gap-3 overflow-hidden">
+                        <UserButton
+                            appearance={{
+                                elements: {
+                                    avatarBox: "w-9 h-9 border-2 border-primary/20",
+                                },
+                            }}
+                        />
+                        <div className="flex flex-col overflow-hidden">
+                            <span className="text-sm font-semibold truncate text-foreground">
+                                {user?.fullName || user?.username || "Storyline User"}
+                            </span>
+                            <span className="text-xs text-muted-foreground truncate">
+                                {user?.primaryEmailAddress?.emailAddress}
+                            </span>
+                        </div>
                     </div>
+                    <ModeToggle />
                 </div>
             </div>
         </aside>

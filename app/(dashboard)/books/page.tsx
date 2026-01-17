@@ -7,6 +7,8 @@ import { BookLogDrawer } from "@/components/book-log-drawer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Database } from "@/lib/supabase/database.types";
 import { cn } from "@/lib/utils";
+import { useGridDensity } from "@/hooks/use-grid-density";
+import { GridDensityToggle } from "@/components/grid-density-toggle";
 
 type BookLog = Database["public"]["Tables"]["book_logs"]["Row"];
 
@@ -23,6 +25,7 @@ export default function BooksPage() {
     const [filterMonth, setFilterMonth] = useState<string | "all">("all");
     const [sortBy, setSortBy] = useState<"date" | "rating" | "title">("date");
     const [showFilters, setShowFilters] = useState(false);
+    const { density, setDensity } = useGridDensity();
 
     const fetchBooks = async () => {
         if (!user?.id) return;
@@ -145,7 +148,15 @@ export default function BooksPage() {
     };
 
     const BookGrid = ({ items, isPlanning = false }: { items: BookLog[], isPlanning?: boolean }) => (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-500">
+        <div className={cn(
+            "grid grid-cols-2 gap-4 animate-in fade-in duration-500",
+            // Tablet: 3 columns (default) or 4 columns (if density is high)
+            "md:grid-cols-3",
+            // Desktop: Dynamic based on density
+            density === 5 ? "lg:grid-cols-5" : "lg:grid-cols-7",
+            // Tighter gap for high density
+            density === 7 ? "gap-4" : "gap-6"
+        )}>
             {items.map((book) => (
                 <div
                     key={book.id}
@@ -237,7 +248,7 @@ export default function BooksPage() {
                         {/* Delete Button */}
                         <button
                             onClick={(e) => handleDelete(book.id, e)}
-                            className="absolute top-2 right-2 p-2 bg-black/60 backdrop-blur-md text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive z-20"
+                            className="absolute top-2 right-2 p-2 bg-black/60 backdrop-blur-md text-white rounded-lg opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity hover:bg-destructive z-20"
                         >
                             <Trash2 size={16} />
                         </button>
@@ -281,16 +292,20 @@ export default function BooksPage() {
                             <TabsTrigger value="planning" className="px-6">Planning ({books.filter(b => b.status === 'planning').length})</TabsTrigger>
                         </TabsList>
 
-                        <button
-                            onClick={() => setShowFilters(!showFilters)}
-                            className={cn(
-                                "flex items-center gap-2 px-4 py-2 rounded-lg transition-all text-sm",
-                                showFilters ? "bg-secondary/20 text-secondary" : "bg-muted hover:bg-muted/80"
-                            )}
-                        >
-                            <SlidersHorizontal size={16} />
-                            Filters
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setShowFilters(!showFilters)}
+                                className={cn(
+                                    "flex items-center gap-2 px-4 py-2 rounded-lg transition-all text-sm",
+                                    showFilters ? "bg-secondary/20 text-secondary" : "bg-muted hover:bg-muted/80"
+                                )}
+                            >
+                                <SlidersHorizontal size={16} />
+                                Filters
+                            </button>
+                            <div className="h-6 w-px bg-border mx-2" />
+                            <GridDensityToggle density={density} onDensityChange={setDensity} />
+                        </div>
                     </div>
 
                     {/* Filters Panel */}

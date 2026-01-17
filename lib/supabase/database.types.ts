@@ -239,6 +239,116 @@ export interface Database {
                     updated_at?: string
                 }
             }
+            tv_logs: {
+                Row: {
+                    id: string
+                    user_id: string
+                    imdb_id: string
+                    title: string
+                    poster_url: string | null
+                    rating: number | null
+                    notes: string | null
+                    status: "completed" | "planning" | "watching"
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    user_id: string
+                    imdb_id: string
+                    title: string
+                    poster_url?: string | null
+                    rating?: number | null
+                    notes?: string | null
+                    status?: "completed" | "planning" | "watching"
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    user_id?: string
+                    imdb_id?: string
+                    title?: string
+                    poster_url?: string | null
+                    rating?: number | null
+                    notes?: string | null
+                    status?: "completed" | "planning" | "watching"
+                    created_at?: string
+                }
+            }
+            profiles: {
+                Row: {
+                    id: string
+                    username: string
+                    bio: string | null
+                    location_label: string | null
+                    avatar_url: string | null
+                    cover_photo_url: string | null
+                    social_x: string | null
+                    social_instagram: string | null
+                    social_tiktok: string | null
+                    social_snapchat: string | null
+                    social_email: string | null
+                    social_website: string | null
+                    pinned_movie_id: string | null
+                    pinned_book_id: string | null
+                    pinned_tv_id: string | null
+                    updated_at: string
+                    created_at: string
+                }
+                Insert: {
+                    id: string
+                    username: string
+                    bio?: string | null
+                    location_label?: string | null
+                    avatar_url?: string | null
+                    cover_photo_url?: string | null
+                    social_x?: string | null
+                    social_instagram?: string | null
+                    social_tiktok?: string | null
+                    social_snapchat?: string | null
+                    social_email?: string | null
+                    social_website?: string | null
+                    pinned_movie_id?: string | null
+                    pinned_book_id?: string | null
+                    pinned_tv_id?: string | null
+                    updated_at?: string
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    username?: string
+                    bio?: string | null
+                    location_label?: string | null
+                    cover_photo_url?: string | null
+                    pinned_movie_id?: string | null
+                    pinned_book_id?: string | null
+                    pinned_tv_id?: string | null
+                    updated_at?: string
+                    created_at?: string
+                }
+            }
+            guestbook: {
+                Row: {
+                    id: string
+                    profile_owner_id: string
+                    author_id: string
+                    message: string
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    profile_owner_id: string
+                    author_id: string
+                    message: string
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    profile_owner_id?: string
+                    author_id?: string
+                    message?: string
+                    created_at?: string
+                }
+            }
         }
         Views: {
             [_ in never]: never

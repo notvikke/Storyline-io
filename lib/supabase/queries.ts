@@ -81,7 +81,7 @@ export async function getBookLogs(userId: string) {
 export async function createBookLog(
     bookData: Database["public"]["Tables"]["book_logs"]["Insert"]
 ) {
-    console.log("Creating book log with data:", bookData);
+    // console.log("Creating book log with data:", bookData);
     const { data, error } = await supabase
         .from("book_logs")
         .insert(bookData)
