@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { CoralineStsoneLogo } from "@/components/ui/coraline-stone-logo";
-import { Film, BookOpen, MapPin, ArrowRight } from "lucide-react";
+import { Film, BookOpen, MapPin, ArrowRight, Tv, Users, Calendar } from "lucide-react";
 import { SignInButton, SignUpButton, useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -78,52 +78,91 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Features Grid */}
-          <div className="grid md:grid-cols-3 gap-8 mt-20">
-            {/* Movie Feature */}
-            <div className="group relative overflow-hidden rounded-2xl bg-card border border-border p-8 hover:border-primary/50 transition-all duration-300 hover:shadow-xl hover:shadow-primary/10">
+          {/* Features Grid (Bento Layout) */}
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-6 mt-20">
+            {/* Row 1 */}
+
+            {/* Card A: Media Tracker (Wide) */}
+            <div className="col-span-1 md:col-span-4 group relative overflow-hidden rounded-2xl bg-card border border-border/50 p-8 hover:border-primary/50 transition-all duration-300 hover:shadow-xl hover:shadow-primary/10">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="relative z-10">
-                <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center mb-6">
-                  <Film className="text-primary" size={32} />
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Film className="text-primary" size={24} />
+                  </div>
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Tv className="text-primary" size={24} />
+                  </div>
                 </div>
-                <h3 className="text-2xl font-bold mb-3">Movie Tracker</h3>
-                <p className="text-muted-foreground">
-                  Log every film you watch with ratings, notes, and IMDb
-                  integration. Never forget a cinematic moment.
+                <h3 className="text-2xl font-bold mb-3 text-foreground">The Media Tracker</h3>
+                <p className="text-muted-foreground text-lg">
+                  Movies & TV Shows. Track what you watch, rate seasons, and never forget a plot twist.
                 </p>
               </div>
             </div>
 
-            {/* Book Feature */}
-            <div className="group relative overflow-hidden rounded-2xl bg-card border border-border p-8 hover:border-secondary/50 transition-all duration-300 hover:shadow-xl hover:shadow-secondary/10">
+            {/* Card B: Book Logs (Square) */}
+            <div className="col-span-1 md:col-span-2 group relative overflow-hidden rounded-2xl bg-card border border-border/50 p-8 hover:border-secondary/50 transition-all duration-300 hover:shadow-xl hover:shadow-secondary/10">
               <div className="absolute inset-0 bg-gradient-to-br from-secondary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="relative z-10">
-                <div className="w-16 h-16 rounded-xl bg-secondary/10 flex items-center justify-center mb-6">
-                  <BookOpen className="text-secondary" size={32} />
+                <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center mb-6">
+                  <BookOpen className="text-secondary" size={24} />
                 </div>
-                <h3 className="text-2xl font-bold mb-3">Book Logs</h3>
+                <h3 className="text-xl font-bold mb-3 text-foreground">Book Logs</h3>
                 <p className="text-muted-foreground">
-                  Chronicle your reading journey with detailed logs, ratings,
-                  and reflections on every page turned.
+                  Chapter by chapter tracking for the avid reader.
                 </p>
               </div>
             </div>
 
-            {/* Travel Feature */}
-            <div className="group relative overflow-hidden rounded-2xl bg-card border border-border p-8 hover:border-chart-3/50 transition-all duration-300 hover:shadow-xl hover:shadow-chart-3/10">
+            {/* Row 2 */}
+
+            {/* Card C: Global Traveler (Square) */}
+            <div className="col-span-1 md:col-span-2 group relative overflow-hidden rounded-2xl bg-card border border-border/50 p-8 hover:border-chart-3/50 transition-all duration-300 hover:shadow-xl hover:shadow-chart-3/10">
               <div className="absolute inset-0 bg-gradient-to-br from-chart-3/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="relative z-10">
-                <div className="w-16 h-16 rounded-xl bg-chart-3/10 flex items-center justify-center mb-6">
-                  <MapPin className="text-chart-3" size={32} />
+                <div className="w-12 h-12 rounded-xl bg-chart-3/10 flex items-center justify-center mb-6">
+                  <MapPin className="text-chart-3" size={24} />
                 </div>
-                <h3 className="text-2xl font-bold mb-3">Travel Map</h3>
+                <h3 className="text-xl font-bold mb-3 text-foreground">Global Traveler</h3>
                 <p className="text-muted-foreground">
-                  Pin your adventures on an interactive map with photos and
-                  memories from every destination.
+                  Pin your adventures and store memories on your interactive world map.
                 </p>
               </div>
             </div>
+
+            {/* Card D: Social Connections (Wide) */}
+            <div className="col-span-1 md:col-span-4 group relative overflow-hidden rounded-2xl bg-card border border-border/50 p-8 hover:border-violet-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-violet-500/10">
+              <div className="absolute inset-0 bg-gradient-to-br from-violet-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="relative z-10">
+                <div className="w-12 h-12 rounded-xl bg-violet-500/10 flex items-center justify-center mb-6">
+                  <Users className="text-violet-500" size={24} />
+                </div>
+                <h3 className="text-2xl font-bold mb-3 text-foreground">Social Connections</h3>
+                <p className="text-muted-foreground text-lg">
+                  Connect with friends. Share your profile, view their logs, and sign guestbooks.
+                </p>
+              </div>
+            </div>
+
+            {/* Row 3 */}
+
+            {/* Card E: Planning & Calendar (Wide) */}
+            <div className="col-span-1 md:col-span-6 group relative overflow-hidden rounded-2xl bg-card border border-border/50 p-8 hover:border-amber-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/10">
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center gap-6">
+                <div className="w-12 h-12 shrink-0 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                  <Calendar className="text-amber-500" size={24} />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold mb-2 text-foreground">Planning & Calendar</h3>
+                  <p className="text-muted-foreground">
+                    Plan your next watch or read. Set reminders for releases and trips.
+                  </p>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </main>

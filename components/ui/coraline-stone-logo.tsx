@@ -24,23 +24,12 @@ export const CoralineStsoneLogo: React.FC<CoralineStoneLogoProps> = ({
             }}
         >
             {/* Inverted Equilateral Triangle */}
+            {/* Filled Inverted Triangle with Hole (Compound Path) */}
             <path
-                d="M 50 80 L 15 30 L 85 30 Z"
-                fill="none"
-                stroke="#00FFCC"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-            />
-
-            {/* Circular Hole in Center */}
-            <circle
-                cx="50"
-                cy="50"
-                r="12"
-                fill="#050505"
-                stroke="#00FFCC"
-                strokeWidth="3"
+                fillRule="evenodd"
+                clipRule="evenodd"
+                d="M50 90L10 20H90L50 90ZM50 50C53.3137 50 56 47.3137 56 44C56 40.6863 53.3137 38 50 38C46.6863 38 44 40.6863 44 44C44 47.3137 46.6863 50 50 50Z"
+                fill="#00FFCC"
             />
         </svg>
     );
